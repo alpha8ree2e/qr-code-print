@@ -81,9 +81,9 @@
         font-weight: 700;
       }
 
-      #scanInput {
+      #scanInput,
+      #suffixInput {
         width: 100%;
-        min-height: 54px;
         border: 2px solid var(--accent);
         border-radius: 8px;
         padding: 10px 12px;
@@ -94,6 +94,22 @@
         letter-spacing: 0;
         outline: none;
         text-transform: uppercase;
+      }
+
+      #scanInput {
+        min-height: 54px;
+      }
+
+      #suffixInput {
+        min-height: 42px;
+        border-width: 1px;
+        border-color: var(--line);
+        font-size: 16px;
+      }
+
+      .suffixField {
+        display: grid;
+        gap: 6px;
       }
 
       .status {
@@ -336,8 +352,8 @@
   <body>
     <main class="app">
       <section class="controls">
-        <h1>扫码生成 R1 二维码</h1>
-        <p class="sub">扫描枪输入单号后会自动识别，生成「单号-R1」二维码，并自动打开打印。</p>
+        <h1>扫码生成二维码</h1>
+        <p class="sub">扫描枪输入单号后会自动识别，按设置的后缀生成二维码，并自动打开打印。</p>
 
         <div class="scanBox">
           <label for="scanInput">扫码输入</label>
@@ -352,6 +368,10 @@
         </div>
 
         <div class="settings">
+          <div class="suffixField">
+            <label for="suffixInput">后缀</label>
+            <input id="suffixInput" autocomplete="off" value="-R1" />
+          </div>
           <label class="check">
             <input id="autoPrint" type="checkbox" checked />
             扫码后自动打印
@@ -385,6 +405,7 @@
     <script>
       const WAYBILL_RE = /[a-zA-Z0-9]{8,30}/g;
       const scanInput = document.querySelector("#scanInput");
+      const suffixInput = document.querySelector("#suffixInput");
       const statusEl = document.querySelector("#status");
       const autoPrint = document.querySelector("#autoPrint");
       const skipDuplicates = document.querySelector("#skipDuplicates");
@@ -404,6 +425,10 @@
       function extractWaybill(raw) {
         const matches = String(raw || "").match(WAYBILL_RE) || [];
         return matches[0] ? matches[0].toUpperCase() : "";
+      }
+
+      function getSuffix() {
+        return suffixInput.value.trim() || "-R1";
       }
 
       function setStatus(text, type = "") {
@@ -483,7 +508,7 @@
           return;
         }
 
-        const generated = source + "-R1";
+        const generated = source + getSuffix();
         current = { source, generated };
         generatedEl.textContent = generated;
 
@@ -533,7 +558,7 @@
       });
 
       window.addEventListener("click", (event) => {
-        if (event.target !== scanInput) focusScanner();
+        if (event.target !== scanInput && event.target !== suffixInput) focusScanner();
       });
 
       window.addEventListener("afterprint", focusScanner);
